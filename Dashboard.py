@@ -134,15 +134,32 @@ st.markdown("""
          </style>
     """, unsafe_allow_html=True)
 
+#================
+# Tab 1: Overview
+#================
+
 with tab1:
 
     df = df_full.copy()
 
     # ---- Month Filter ----
-    months = sorted(df["Month_Name"].dropna().unique())
-    if months:
-        selected_month = st.selectbox("📅 Select Month", months, index=len(months)-1)
-        df = df[df["Month_Name"] == selected_month]
+    month_list = (
+        df_full[["Month", "Month_Name"]]
+        .dropna()
+        .drop_duplicates()
+        .sort_values("Month")["Month_Name"]
+        .tolist()
+    )
+
+    if month_list:
+        selected_month = st.selectbox(
+            "📅 Select Month",
+            month_list,
+            index=len(month_list) - 1,
+            key="overview_month_filter"
+        )
+        # فلترة بيانات هذا التاب فقط
+        df = df_full[df_full["Month_Name"] == selected_month]
     else:
         st.warning("⚠️ No valid month data found in the file.")
         st.stop()
@@ -202,24 +219,8 @@ with tab1:
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("<hr style='border:2px solid #007BFF'>", unsafe_allow_html=True)
 
-    # ---- Products with Zero Sales (Across All Branches) ----
-    st.subheader("❌ Products with Zero Sales Across All Branches")
-
-    # نحسب مجموع المبيعات لكل منتج عبر جميع الفروع
-    zero_sales_all = (
-        df.groupby("Product", as_index=False)["Sales"].sum()
-        .query("Sales == 0")  # المنتجات التي مجموع مبيعاتها صفر
-    )
-
-    if zero_sales_all.empty:
-        st.success("🎉 No products with zero sales in any branch this month!")
-    else:
-        st.dataframe(zero_sales_all, use_container_width=True)
-
-    st.markdown("<hr style='border:2px solid #007BFF'>", unsafe_allow_html=True)
-
     # ---- Branch Summary for Selected Month ----
-    st.subheader("🏬 Branch Performance (Unique Visitors & Total Quantity)")
+    st.subheader("🏬 Branch Performance (Visitors & Quantity)")
 
     # نحسب إجمالي الكمية لكل فرع
     # وعدد الزوار بشكل فريد (كل رقم زوار يُحسب مرة واحدة فقط)
@@ -276,7 +277,7 @@ with tab1:
     product_summary = product_summary.sort_values("Purchase%", ascending=False)
 
     # ---- تصنيف المنتجات حسب النسبة ----
-    st.subheader("📊 Percentage of visitors out of the total number who purchased the product in all branches")
+    st.subheader("📊 Percentage of Visitors Out of the Total Number Who Purchased The Product in All Branches")
 
     cat1 = product_summary[product_summary["Purchase%"] >= 20].sort_values(by="Purchase%", ascending=False)
     cat2 = product_summary[(product_summary["Purchase%"] >= 15) & (product_summary["Purchase%"] < 20)].sort_values(by="Purchase%", ascending=False)
@@ -342,11 +343,31 @@ with tab1:
 
     st.markdown("<hr style='border:2px solid #007BFF'>", unsafe_allow_html=True)
 
+    # ---- Products with Zero Sales (Across All Branches) ----
+    st.subheader("❌ Products With Zero Sales Across All Branches")
+
+    # نحسب مجموع المبيعات لكل منتج عبر جميع الفروع
+    zero_sales_all = (
+        df.groupby("Product", as_index=False)["Sales"].sum()
+        .query("Sales == 0")  # المنتجات التي مجموع مبيعاتها صفر
+    )
+
+    if zero_sales_all.empty:
+        st.success("🎉 No products with zero sales in any branch this month!")
+    else:
+        st.dataframe(zero_sales_all, use_container_width=True)
+
+    st.markdown("<hr style='border:2px solid #007BFF'>", unsafe_allow_html=True)
+
+#================
+# Tab 2: Prodcts
+#================
+
 with tab2:
 
     df_product = df_full.copy()
     
-    st.subheader("Product performance in the same month across branches")
+    st.subheader("Product Performance in the Same Month Across Branches")
 
     # --- فلاتر في صف واحد ---
     col1, col2 = st.columns(2)
@@ -356,7 +377,13 @@ with tab2:
         selected_product2 = st.selectbox("🎯 Select Product", product_list, key="prod_by_branch")
 
     with col2:
-        month_list = sorted(df_product["Month_Name"].dropna().unique())
+        month_list = (
+            df_full[["Month", "Month_Name"]]
+            .dropna()
+            .drop_duplicates()
+            .sort_values("Month")["Month_Name"]
+            .tolist()
+        )
         selected_month2 = st.selectbox("📅 Select Month", month_list, key="month_by_branch")
 
     # --- تصفية البيانات بناءً على المنتج والشهر ---
@@ -402,7 +429,7 @@ with tab2:
         st.plotly_chart(fig_bar, use_container_width=True)
     st.markdown("<hr style='border:2px solid #007BFF'>", unsafe_allow_html=True)
 
-    st.subheader("Product performance in the same branch over months")    
+    st.subheader("Product Performance in the Same Branch Over Months")    
 
         # ---- الفلاتر  ----
     col1, col2 = st.columns(2)
@@ -472,7 +499,13 @@ with tab2:
     col1, col2 = st.columns(2)
 
     with col1:
-        month_list = sorted(df_pop["Month_Name"].dropna().unique())
+        month_list = (
+            df_full[["Month", "Month_Name"]]
+            .dropna()
+            .drop_duplicates()
+            .sort_values("Month")["Month_Name"]
+            .tolist()
+        )
         selected_month_pop = st.selectbox(
             "📅 Select Month", 
             month_list, 
