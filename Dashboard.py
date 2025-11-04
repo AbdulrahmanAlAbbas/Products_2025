@@ -376,13 +376,16 @@ with tab2:
             .sort_values("Quantity", ascending=False)
         )
 
-        # --- رسم مخطط الأعمدة ---
+        # --- حساب الإجمالي ---
+        total_qty = branch_performance["Quantity"].sum()
+
+        # --- رسم مخطط الأعمدة مع إضافة الإجمالي في العنوان ---
         fig_bar = px.bar(
             branch_performance,
             x="Branch",
             y="Quantity",
             text="Quantity",
-            title=f"🏆 {selected_product2} — Quantity per Branch ({selected_month2})",
+            title=f"🏆 {selected_product2} — Quantity per Branch ({selected_month2}) | Total = {total_qty:,}",
             color="Quantity",
             color_continuous_scale="Blues"
         )
@@ -431,17 +434,21 @@ with tab2:
         )
         performance_df["Month_Name"] = performance_df["Month"].dt.strftime("%B %Y")
 
+        # ---- حساب الإجمالي ----
+        total_qty_line = performance_df["Quantity"].sum()
+
         # ---- رسم المخطط ----
         fig_line = px.line(
             performance_df,
             x="Month_Name",
             y="Quantity",
             text="Quantity",
-            title=f"📈 {selected_product} — Quantity Trend per Month ({selected_branch})",
+            title=f"📈 {selected_product} — Quantity Trend per Month ({selected_branch}) | Total = {total_qty_line:,}",
             markers=True,
             line_shape="spline",
             color_discrete_sequence=["#2E86C1"]
         )
+
         fig_line.update_traces(textposition="top center")
         fig_line.update_layout(
             xaxis_title="Month",
